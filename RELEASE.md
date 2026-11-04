@@ -11,6 +11,6 @@ Skill Shelf is an npm CLI package, not a skills.sh skill. Releases are manual an
 
 ## Publish
 
-After approval, publish the reviewed commit with `npm publish`. Verify the published version and install the CLI in a clean environment. Update the README with the verified installation command. For subsequent releases, update the version using semantic versioning, review and commit the change, repeat the checks, and publish only after approval.
+After approval, publish the reviewed commit with `npm publish --access public`. Verify the published version and install the CLI in a clean environment. For subsequent releases, update the version using semantic versioning, review and commit the change, repeat the checks, and publish only after approval.
 
 For future automation, npm supports [trusted publishing](https://docs.npmjs.com/trusted-publishers/) from GitHub-hosted Actions with Node 22.14+ and npm 11.5.1+. A package owner can configure a specific workflow on npm after the package exists. The workflow needs `id-token: write`; consider stage-only publishing and 2FA approval. Newly created trusted publisher configurations expire if their first successful publication does not occur within two days. No trusted publisher is configured by this project.

@@ -17,13 +17,15 @@ test('packed CLI installs and runs independently of the source tree', async () =
       },
     );
     const [packed] = JSON.parse(output);
-    assert.deepEqual(
-      packed.files
-        .map((file) => file.path)
-        .filter((path) => path !== 'LICENSE')
-        .sort(),
-      ['README.md', 'dist/app.js', 'dist/cli.js', 'dist/data.js', 'dist/layout.js', 'package.json'],
-    );
+    assert.deepEqual(packed.files.map((file) => file.path).sort(), [
+      'LICENSE',
+      'README.md',
+      'dist/app.js',
+      'dist/cli.js',
+      'dist/data.js',
+      'dist/layout.js',
+      'package.json',
+    ]);
     execFileSync(
       npm,
       [
@@ -39,7 +41,19 @@ test('packed CLI installs and runs independently of the source tree', async () =
         stdio: 'pipe',
       },
     );
-    const cli = join(directory, 'node_modules', 'skill-shelf', 'dist', 'cli.js');
+    const cli = join(directory, 'node_modules', '@simonteague6', 'skill-shelf', 'dist', 'cli.js');
+    assert.equal(packed.name, '@simonteague6/skill-shelf');
+    assert.equal(
+      execFileSync(
+        npm,
+        ['exec', '--offline', '--no', '--', '@simonteague6/skill-shelf', '--version'],
+        {
+          cwd: directory,
+          encoding: 'utf8',
+        },
+      ).trim(),
+      packed.version,
+    );
     if (process.platform !== 'win32') {
       const bin = join(directory, 'node_modules', '.bin', 'skill-shelf');
       assert.equal(execFileSync(bin, ['--version'], { encoding: 'utf8' }).trim(), packed.version);

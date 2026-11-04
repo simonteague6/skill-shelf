@@ -7,13 +7,13 @@ A read-only terminal browser for project and global agent skills. Skill Shelf li
 Requires Node.js 20 or later and an interactive terminal.
 
 ```sh
-npx skill-shelf
+npx @simonteague6/skill-shelf
 ```
 
 Or install the CLI globally and run it:
 
 ```sh
-npm install --global skill-shelf
+npm install --global @simonteague6/skill-shelf
 skill-shelf
 ```
 
