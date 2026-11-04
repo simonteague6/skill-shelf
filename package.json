@@ -1,7 +1,8 @@
 {
-  "name": "skill-shelf",
+  "name": "@simonteague6/skill-shelf",
   "version": "0.1.0",
   "description": "A read-only terminal shelf for installed agent skills",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/simonteague6/skill-shelf.git"
@@ -24,6 +25,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run build && node --test test/*.test.mjs",
+    "release:check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm pack --dry-run",
     "prepack": "npm run build"
   },
   "dependencies": {

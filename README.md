@@ -2,9 +2,22 @@
 
 A read-only terminal browser for project and global agent skills. Skill Shelf lists skill folder names and groups them by the source recorded in their lock file. It does not edit skills or lock files.
 
-## Run
+## Run the npm package
 
 Requires Node.js 20 or later and an interactive terminal.
+
+```sh
+npx @simonteague6/skill-shelf
+```
+
+Or install the CLI globally and run it:
+
+```sh
+npm install --global @simonteague6/skill-shelf
+skill-shelf
+```
+
+Run the command from the project you want to inspect. In the Skill Shelf source checkout, npm can resolve the local package without providing its executable to `npx`. Build and run the source directly instead:
 
 ```sh
 npm ci
@@ -12,7 +25,7 @@ npm run build
 node dist/cli.js
 ```
 
-Run the command from the project you want to inspect. To build a local npm package, run `npm pack`. The package includes the `skill-shelf` executable; it has not been published by this project.
+To build a local npm package, run `npm pack`.
 
 ## Controls
 
@@ -48,6 +61,6 @@ npm pack --dry-run
 
 ## Release preparation
 
-The npm CLI package and the skills.sh skill registry are separate: this project is a CLI, not a skill for installation through skills.sh. It has not been published to npm.
+The npm CLI package and the skills.sh skill registry are separate: this project is a CLI, not a skill for installation through skills.sh.
 
 Before a release, choose a semantic version, verify the checks above, inspect `npm pack --dry-run`, and review the package metadata and license. A release requires explicit approval; CI does not publish or create tags. An npm account and package ownership are required for publishing. For future automated releases, consider a GitHub-hosted workflow using npm trusted publishing with Node 22.14 or later, npm 11.5.1 or later, and `id-token: write`. Configure its exact repository and workflow filename on npm only when ready to release, and protect the release trigger. See [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
