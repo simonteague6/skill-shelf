@@ -27,12 +27,16 @@ export function shelfLines(shelf: Shelf, scope: 'project' | 'global', width: num
     const count = String(group.skills.length);
     const title = clip(group.title, Math.max(0, width - count.length - 1));
     const gap = Math.max(1, width - stringWidth(title) - count.length);
-    lines.push([{ text: title, color, bold: true }, { text: ' '.repeat(gap) + count, dim: true }]);
+    if (count.length >= width) lines.push([{ text: clip(count, width), dim: true }]);
+    else lines.push([{ text: title, color, bold: true }, { text: ' '.repeat(gap) + count, dim: true }]);
     if (group.kind === 'other') {
       const nameWidth = Math.min(Math.max(...group.skills.map(s => stringWidth(s.name))), Math.floor(width * 0.48));
       for (const skill of group.skills) {
         if (width < 16) lines.push([{ text: clip(skill.name, width) }], [{ text: clip(skill.source ?? '', width), dim: true }]);
-        else lines.push([{ text: clip(skill.name, nameWidth).padEnd(nameWidth + 2) }, { text: clip(skill.source ?? '', Math.max(0, width - nameWidth - 2)), dim: true }]);
+        else {
+          const name = clip(skill.name, nameWidth);
+          lines.push([{ text: name + ' '.repeat(Math.max(0, nameWidth + 2 - stringWidth(name))) }, { text: clip(skill.source ?? '', Math.max(0, width - nameWidth - 2)), dim: true }]);
+        }
       }
     } else {
       const max = Math.max(...group.skills.map(s => stringWidth(s.name)));

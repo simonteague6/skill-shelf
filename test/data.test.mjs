@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { findProject, loadShelf } from '../dist/data.js';
 import { shelfLines } from '../dist/layout.js';
+import stringWidth from 'string-width';
 
 async function fixture(fn) {
   const root = await mkdtemp(join(tmpdir(), 'skill-shelf-'));
@@ -57,4 +58,14 @@ test('empty view and narrow layout stay within terminal width', async () => {
   assert.equal(shelfLines(empty, 'project', 80)[0][0].text, 'No project skills');
   const shelf = { skills: [{ name: 'one-long-name', source: 'very-long-source' }], groups: [{ title: 'Other sources', kind: 'other', skills: [{ name: 'one-long-name', source: 'very-long-source' }] }] };
   for (const line of shelfLines(shelf, 'project', 10)) assert.ok(line.map(s => s.text).join('').length <= 10);
+});
+
+test('group headings and wide characters fit every terminal width', () => {
+  const skill = { name: '界界', source: 'a-long-source' };
+  const shelf = { skills: [skill], groups: [{ title: 'Other sources', kind: 'other', skills: [skill] }] };
+  for (let width = 1; width <= 30; width++) {
+    for (const line of shelfLines(shelf, 'project', width)) {
+      assert.ok(stringWidth(line.map(span => span.text).join('')) <= width, `width ${width}`);
+    }
+  }
 });

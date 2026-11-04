@@ -2,11 +2,12 @@
 import React from 'react';
 import { render } from 'ink';
 import { homedir } from 'node:os';
+import { createRequire } from 'node:module';
 import { App } from './app.js';
 import { findProject, loadShelf } from './data.js';
 
 async function main() {
-  if (process.argv.slice(2).includes('--version')) { console.log('0.1.0'); return; }
+  if (process.argv.slice(2).includes('--version')) { console.log((createRequire(import.meta.url)('../package.json') as { version: string }).version); return; }
   if (process.argv.slice(2).includes('--help')) { console.log('Usage: skill-shelf\n\nBrowse project and global skills. Run in an interactive terminal.'); return; }
   if (process.argv.length > 2) { console.error('Usage: skill-shelf'); process.exitCode = 2; return; }
   if (!process.stdin.isTTY || !process.stdout.isTTY) { console.error('Skill Shelf requires an interactive terminal.'); process.exitCode = 1; return; }
