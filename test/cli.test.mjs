@@ -5,7 +5,10 @@ import { readFileSync } from 'node:fs';
 
 test('version reflects the package metadata', () => {
   const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
-  assert.equal(execFileSync(process.execPath, ['dist/cli.js', '--version'], { encoding: 'utf8' }).trim(), version);
+  assert.equal(
+    execFileSync(process.execPath, ['dist/cli.js', '--version'], { encoding: 'utf8' }).trim(),
+    version,
+  );
 });
 
 test('noninteractive use fails without entering the alternate screen', () => {

@@ -2,6 +2,10 @@
   "name": "skill-shelf",
   "version": "0.1.0",
   "description": "A read-only terminal shelf for installed agent skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simonteague6/skill-shelf.git"
+  },
   "type": "module",
   "bin": {
     "skill-shelf": "dist/cli.js"
@@ -15,6 +19,10 @@
   },
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "npm run build && node --test test/*.test.mjs",
     "prepack": "npm run build"
   },
@@ -24,8 +32,10 @@
     "string-width": "^7.2.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.7.0"
   }
 }

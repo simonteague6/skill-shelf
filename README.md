@@ -7,7 +7,7 @@ A read-only terminal browser for project and global agent skills. Skill Shelf li
 Requires Node.js 20 or later and an interactive terminal.
 
 ```sh
-npm install
+npm ci
 npm run build
 node dist/cli.js
 ```
@@ -35,7 +35,19 @@ Only the paths above are scanned. Agent-specific skill directories, alternate gl
 ## Development
 
 ```sh
+npm ci
+npm run format:check
+npm run lint
+npm run typecheck
 npm test
+npm run build
+npm pack --dry-run
 ```
 
-The test command builds the TypeScript sources and runs the Node.js test suite. `npm run build` builds without running tests.
+`npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses a compact column list with pastel source headings and separate rows for individual sources.
+
+## Release preparation
+
+The npm CLI package and the skills.sh skill registry are separate: this project is a CLI, not a skill for installation through skills.sh. It has not been published to npm.
+
+Before a release, choose a semantic version, verify the checks above, inspect `npm pack --dry-run`, and review the package metadata and license. A release requires explicit approval; CI does not publish or create tags. An npm account and package ownership are required for publishing. For future automated releases, consider a GitHub-hosted workflow using npm trusted publishing with Node 22.14 or later, npm 11.5.1 or later, and `id-token: write`. Configure its exact repository and workflow filename on npm only when ready to release, and protect the release trigger. See [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
