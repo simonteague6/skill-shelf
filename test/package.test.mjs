@@ -43,6 +43,14 @@ test('packed CLI installs and runs independently of the source tree', async () =
     );
     const cli = join(directory, 'node_modules', '@simonteague6', 'skill-shelf', 'dist', 'cli.js');
     assert.equal(packed.name, '@simonteague6/skill-shelf');
+    const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    const npxResult = spawnSync(npx, ['@simonteague6/skill-shelf'], {
+      cwd: directory,
+      encoding: 'utf8',
+      env: { ...process.env, npm_config_offline: 'true' },
+    });
+    assert.equal(npxResult.status, 1);
+    assert.match(npxResult.stderr, /requires an interactive terminal/);
     assert.equal(
       execFileSync(
         npm,

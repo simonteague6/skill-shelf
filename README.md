@@ -17,7 +17,7 @@ npm install --global @simonteague6/skill-shelf
 skill-shelf
 ```
 
-Run the command from the project you want to inspect. To build and run from a source checkout:
+Run the command from the project you want to inspect. In the Skill Shelf source checkout, npm can resolve the local package without providing its executable to `npx`. Build and run the source directly instead:
 
 ```sh
 npm ci
