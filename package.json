@@ -1,0 +1,31 @@
+{
+  "name": "skill-shelf",
+  "version": "0.1.0",
+  "description": "A read-only terminal shelf for installed agent skills",
+  "type": "module",
+  "bin": {
+    "skill-shelf": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "ink": "^5.2.1",
+    "react": "^18.3.1",
+    "string-width": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "typescript": "^5.7.0"
+  }
+}
