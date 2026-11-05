@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -24,6 +24,7 @@ test('packed CLI installs and runs independently of the source tree', async () =
       'dist/cli.js',
       'dist/data.js',
       'dist/layout.js',
+      'dist/registry.js',
       'package.json',
     ]);
     execFileSync(
@@ -42,6 +43,14 @@ test('packed CLI installs and runs independently of the source tree', async () =
       },
     );
     const cli = join(directory, 'node_modules', '@simonteague6', 'skill-shelf', 'dist', 'cli.js');
+    const registry = await readFile(
+      join(directory, 'node_modules', '@simonteague6', 'skill-shelf', 'dist', 'registry.js'),
+      'utf8',
+    );
+    assert.ok(registry.includes('1a1d387ed4286e59aa43a2696cf02b3590061c91'));
+    assert.ok(registry.includes('Copyright (c) 2026 Vercel, Inc.'));
+    assert.ok(registry.includes('Permission is hereby granted, free of charge'));
+    assert.ok(registry.includes('OUT OF OR IN CONNECTION WITH THE SOFTWARE'));
     assert.equal(packed.name, '@simonteague6/skill-shelf');
     const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
     const npxResult = spawnSync(npx, ['@simonteague6/skill-shelf'], {
