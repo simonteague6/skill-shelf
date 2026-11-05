@@ -126,7 +126,7 @@ export async function loadShelf(
   scope: 'project' | 'global',
   options: { env?: NodeJS.ProcessEnv; comparisonBudget?: { bytes: number; entries: number } } = {},
 ): Promise<Shelf> {
-  const found: (Skill & { folder: string; target: string; names: string[] })[] = [];
+  const found: (Skill & { target: string; names: string[] })[] = [];
   let readFailures = 0;
   for (const { path: directory, label } of await destinations(
     base,
@@ -155,7 +155,6 @@ export async function loadShelf(
           found.push({
             name: clean(entry.name),
             names: [entry.name],
-            folder: path,
             target: await realpath(path),
             locations: [
               {
@@ -293,6 +292,7 @@ export async function loadShelf(
         source,
       };
     });
+  if (notice === 'Lock file missing' && (readFailures || uncertain)) notice = undefined;
   if (readFailures)
     notice = `${readFailures} location or skill read issues${notice ? ` · ${notice}` : ''}`;
   if (uncertain)
@@ -341,12 +341,18 @@ export async function loadSnapshot(
     if (parent === current) break;
     current = parent;
   }
+  const notices = sections.flatMap((section) =>
+    section.notice && section.notice !== 'Lock file missing' ? [section.notice] : [],
+  );
   return {
     project: {
       skills: sections.flatMap((section) => section.skills),
       groups: [],
       sections,
       home: clean(homePath),
+      notice: notices.length
+        ? `${notices.length} directory ${notices.length === 1 ? 'notice' : 'notices'} · ${[...new Set(notices)].join(' · ')}`
+        : undefined,
     },
     global: await loadShelf(homePath, 'global', { env, comparisonBudget }),
   };

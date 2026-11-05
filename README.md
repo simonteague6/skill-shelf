@@ -63,7 +63,7 @@ npm run build
 npm pack --dry-run
 ```
 
-`npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite; Unix interactive CLI tests also require Python 3 for the PTY driver. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses selectable grids with pastel source headings, directory sections and a detail view.
+`npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite; Unix interactive CLI tests also require Python 3.9 or later for the PTY driver. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses selectable grids with pastel source headings, directory sections and a detail view.
 
 ## Release preparation
 

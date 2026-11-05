@@ -63,6 +63,30 @@ test('long source headings keep their adjacent count visible in narrow output', 
   assert.equal(heading, 'repository/with/a/ve…  2');
 });
 
+test('destination display names match the pinned upstream registry', () =>
+  fixture(async (root) => {
+    await skill(root, '.codestudio/skills', 'studio');
+    const shelf = await loadShelf(root, 'project', { env: {} });
+    assert.equal(shelf.skills[0].locations[0].label, 'Code Studio');
+  }));
+
+test('ancestor notices remain visible before a long selectable inventory', () =>
+  fixture(async (root) => {
+    const home = join(root, 'home');
+    const parent = join(home, 'project');
+    const current = join(parent, 'app');
+    for (let index = 0; index < 20; index++)
+      await skill(current, '.agents/skills', `skill-${index}-long-name-to-force-few-columns`);
+    await writeFile(join(parent, 'skills-lock.json'), '{');
+    const snapshot = await inventory.loadSnapshot(current, home, {});
+    const viewport = shelfLines(snapshot.project, 'project', 80)
+      .slice(0, 9)
+      .flatMap((line) => line.map((span) => span.text))
+      .join('\n');
+    assert.match(viewport, /Cannot read lock file/);
+    assert.equal(snapshot.project.skills.length, 20);
+  }));
+
 test('installed locations keep Agents first and sort equal destination labels by path', () =>
   fixture(async (root) => {
     const original = await skill(root, '.agents/skills', 'alpha');

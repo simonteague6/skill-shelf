@@ -1,6 +1,29 @@
 import { access } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
 
+/*
+ * Registry data derived from vercel-labs/skills (MIT License).
+ * Copyright (c) 2026 Vercel, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 // Installation destinations from vercel-labs/skills src/agents.ts at
 // 1a1d387ed4286e59aa43a2696cf02b3590061c91 (2026-11-04).
 // Detection predicates are intentionally not used: this is an observational inventory.
@@ -19,7 +42,7 @@ export const registry = [
   ['CodeArts Agent', '.codeartsdoer/skills', '.codeartsdoer/skills'],
   ['CodeBuddy', '.codebuddy/skills', '.codebuddy/skills'],
   ['Codemaker', '.codemaker/skills', '.codemaker/skills'],
-  ['CodeStudio', '.codestudio/skills', '.codestudio/skills'],
+  ['Code Studio', '.codestudio/skills', '.codestudio/skills'],
   ['Codex', '.agents/skills', '.agents/skills'],
   ['Command Code', '.commandcode/skills', '.commandcode/skills'],
   ['Continue', '.continue/skills', '.continue/skills'],

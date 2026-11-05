@@ -20,6 +20,17 @@ const clip = (text: string, width: number): string => {
   }
   return result + (width > 0 ? '…' : '');
 };
+const heading = (title: string, size: number, width: number, color: string): Line => {
+  const count = `  ${size}`;
+  return [
+    {
+      text:
+        clip(title, Math.max(0, width - count.length)) + clip(count, Math.min(width, count.length)),
+      color,
+      bold: true,
+    },
+  ];
+};
 export function shelfLines(
   shelf: Shelf,
   scope: 'project' | 'global',
@@ -62,23 +73,25 @@ export function shelfLines(
     return lines;
   }
   if (shelf.sections) {
+    if (shelf.notice) lines.push([{ text: clip(shelf.notice, width), dim: true }], []);
     for (const section of shelf.sections) {
-      if (!section.skills.length && (!section.notice || section.notice === 'Lock file missing'))
-        continue;
-      const count = `  ${section.skills.length}`;
-      lines.push([
-        {
-          text:
-            clip(section.label ?? section.directory, Math.max(0, width - count.length)) +
-            clip(count, Math.min(width, count.length)),
-          color: '#9cbdf0',
-          bold: true,
-        },
-      ]);
+      if (!section.skills.length) continue;
+      lines.push(
+        heading(section.label ?? section.directory, section.skills.length, width, '#9cbdf0'),
+      );
       lines.push([]);
-      lines.push(...shelfLines(section, scope, width, options), []);
+      lines.push(...shelfLines({ ...section, notice: undefined }, scope, width, options), []);
     }
-    if (lines.length) return lines;
+    if (lines.length) {
+      if (!shelf.skills.length)
+        lines.push([
+          {
+            text: clip(scope === 'project' ? 'No project skills' : 'No global skills', width),
+            dim: true,
+          },
+        ]);
+      return lines;
+    }
   }
   if (shelf.error) return [[{ text: clip(shelf.error, width), color: '#efaaa9' }]];
   if (shelf.notice && shelf.notice !== 'Lock file missing' && shelf.skills.length)
@@ -99,16 +112,7 @@ export function shelfLines(
   for (const group of shelf.groups) {
     const color =
       group.kind === 'source' ? '#8acdbd' : group.kind === 'collection' ? '#efc780' : '#9cbdf0';
-    const count = `  ${group.skills.length}`;
-    lines.push([
-      {
-        text:
-          clip(group.title, Math.max(0, width - count.length)) +
-          clip(count, Math.min(width, count.length)),
-        color,
-        bold: true,
-      },
-    ]);
+    lines.push(heading(group.title, group.skills.length, width, color));
     if (group.kind === 'other') {
       const nameWidth = Math.min(
         Math.max(...group.skills.map((s) => stringWidth(s.name))),
