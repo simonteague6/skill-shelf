@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import { render } from 'ink';
-import { homedir } from 'node:os';
 import { createRequire } from 'node:module';
 import { App } from './app.js';
-import { findProject, loadShelf } from './data.js';
+import { loadSnapshot } from './data.js';
 
 async function main() {
   if (process.argv.slice(2).includes('--version')) {
@@ -26,11 +25,7 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  const root = await findProject(process.cwd());
-  const [project, global] = await Promise.all([
-    root ? loadShelf(root, 'project') : Promise.resolve({ skills: [], groups: [] }),
-    loadShelf(homedir(), 'global'),
-  ]);
+  const { project, global } = await loadSnapshot(process.cwd());
   process.stdout.write('\x1b[?1049h\x1b[?25l');
   try {
     const app = render(<App project={project} global={global} />, { exitOnCtrlC: false });
