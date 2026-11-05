@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+        id: release
+
+  publish:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
+      RELEASE_SHA: ${{ needs.release.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Verify released commit, tag, and package versions
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test "$(git rev-parse "refs/tags/$TAG^{commit}")" = "$RELEASE_SHA"
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+          node --input-type=module <<'NODE'
+            import assert from "node:assert/strict";
+            import {readFileSync} from "node:fs";
+            const pkg = JSON.parse(readFileSync("package.json"));
+            const lock = JSON.parse(readFileSync("package-lock.json"));
+            assert.match(pkg.version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+            assert.equal(process.env.TAG, `v${pkg.version}`);
+            assert.equal(lock.version, pkg.version);
+            assert.equal(lock.packages[""].version, pkg.version);
+          NODE
+      - run: npm ci
+      - run: npm run release:check
+      - name: Refuse to move npm latest backwards
+        run: |
+          node --input-type=module <<'NODE'
+            import assert from "node:assert/strict";
+            import {readFileSync} from "node:fs";
+            const {name, version} = JSON.parse(readFileSync("package.json"));
+            const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}/latest`, {
+              signal: AbortSignal.timeout(30_000),
+            });
+            assert.ok(response.ok, `Registry lookup failed: HTTP ${response.status}`);
+            const latest = await response.json();
+            assert.equal(latest.name, name);
+            const parse = value => {
+              assert.equal(typeof value, "string");
+              assert.match(value, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+              return value.split(".").map(BigInt);
+            };
+            const target = parse(version), current = parse(latest.version);
+            const difference = target.map((part, i) => part - current[i]).find(part => part !== 0n);
+            assert.ok(difference === undefined || difference > 0n, "Refusing to downgrade npm latest");
+          NODE
+      - name: Publish with npm trusted publishing
+        run: npm publish --access public --tag latest --registry=https://registry.npmjs.org
