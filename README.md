@@ -59,8 +59,8 @@ npm pack --dry-run
 
 `npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses a compact column list with pastel source headings and separate rows for individual sources.
 
-## Release preparation
+## Releases
 
 The npm CLI package and the skills.sh skill registry are separate: this project is a CLI, not a skill for installation through skills.sh.
 
-Before a release, choose a semantic version, verify the checks above, inspect `npm pack --dry-run`, and review the package metadata and license. A release requires explicit approval; CI does not publish or create tags. An npm account and package ownership are required for publishing. For future automated releases, consider a GitHub-hosted workflow using npm trusted publishing with Node 22.14 or later, npm 11.5.1 or later, and `id-token: write`. Configure its exact repository and workflow filename on npm only when ready to release, and protect the release trigger. See [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
+Release Please maintains a version/changelog PR from Conventional Commits on `main`. Merging that PR creates a GitHub release and automatically validates and publishes the stable npm package using trusted publishing. Release PRs are not auto-merged. See [release setup, versioning, and recovery](docs/releasing.md).

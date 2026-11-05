@@ -21,7 +21,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint src test",
+    "lint": "biome lint src test scripts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run build && node --test test/*.test.mjs",

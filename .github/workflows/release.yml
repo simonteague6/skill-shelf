@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing stable GitHub release tag to retry publishing (vX.Y.Z)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      publish: ${{ steps.release.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch' }}
+      tag: ${{ steps.release.outputs.tag_name || inputs.tag }}
+      sha: ${{ steps.release.outputs.sha }}
+      pr: ${{ steps.release.outputs.pr }}
+      prs_created: ${{ steps.release.outputs.prs_created }}
+    steps:
+      - name: Maintain release PR or create merged release
+        if: github.event_name == 'push'
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+        id: release
+      - name: Validate recovery release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease \
+            | jq -e --arg tag "$TAG" '.tagName == $tag and (.isDraft | not) and (.isPrerelease | not)'
+
+  release-pr-ci:
+    needs: release
+    if: needs.release.outputs.prs_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check out trusted main dispatch logic
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Dispatch read-only CI for the generated release PR
+        uses: actions/github-script@v9
+        env:
+          RELEASE_PR: ${{ needs.release.outputs.pr }}
+        with:
+          script: |
+            const dispatch = require('./scripts/dispatch-release-ci.cjs');
+            await dispatch({github, context, releasePR: process.env.RELEASE_PR});
+
+  publish:
+    needs: release
+    if: needs.release.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the released commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.sha || format('refs/tags/{0}', needs.release.outputs.tag) }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node.js 24 without release caches
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Verify npm supports trusted publishing
+        run: |
+          node --input-type=module -e '
+            import {execFileSync} from "node:child_process";
+            const [major, minor, patch] = execFileSync("npm", ["--version"], {encoding: "utf8"}).trim().split(".").map(Number);
+            if (!(major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1))))) {
+              throw new Error("Trusted publishing requires npm >=11.5.1");
+            }'
+      - name: Validate stable version, lockfile, tag, and main ancestry
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
+        run: node scripts/check-release.mjs "$TAG" refs/remotes/origin/main
+      - name: Check whether npm already has this version
+        id: registry
+        run: node scripts/check-registry.mjs >> "$GITHUB_OUTPUT"
+      - name: Install dependencies
+        if: steps.registry.outputs.publish == 'true'
+        run: npm ci
+      - name: Validate and inspect the release package
+        if: steps.registry.outputs.publish == 'true'
+        run: npm run release:check
+      - name: Publish to npm with trusted publishing
+        if: steps.registry.outputs.publish == 'true'
+        run: npm publish --access public --tag latest --registry=https://registry.npmjs.org
+      - name: Verify published version
+        if: steps.registry.outputs.publish == 'true'
+        run: node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {publicationNeeded} from "./scripts/registry.mjs"; const {name, version} = JSON.parse(await readFile("package.json", "utf8")); if (await publicationNeeded(name, version)) throw new Error("Published version not found");'
