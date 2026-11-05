@@ -1,6 +1,6 @@
 {
   "name": "@simonteague6/skill-shelf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A read-only terminal shelf for installed agent skills",
   "license": "MIT",
   "repository": {
