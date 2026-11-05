@@ -24,6 +24,7 @@ test('packed CLI installs and runs independently of the source tree', async () =
       'dist/cli.js',
       'dist/data.js',
       'dist/layout.js',
+      'dist/registry.js',
       'package.json',
     ]);
     execFileSync(

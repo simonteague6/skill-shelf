@@ -1,6 +1,6 @@
 # Skill Shelf
 
-A read-only terminal browser for project and global agent skills. Skill Shelf lists skill folder names and groups them by the source recorded in their lock file. It does not edit skills or lock files.
+A read-only terminal browser for locally installed agent skills across skills.sh-supported destinations. Browse project ancestors and a separate global collection, grouped by recorded source. Skill Shelf does not edit skills or lock files, fetch registries, or detect which agents are installed.
 
 ## Run the npm package
 
@@ -30,20 +30,26 @@ To build a local npm package, run `npm pack`.
 ## Controls
 
 - `Tab` switches between Project and Global. Project opens first.
-- Arrow keys or `j` and `k` scroll the current view.
+- Arrow keys or `h`/`j`/`k`/`l` select skills in the displayed grid.
+- `Enter` opens Source and Installed locations. `Esc` or `Enter` returns to the overview.
+- In details, up/down or `j`/`k` scroll; left/right or `h`/`l` browse skills.
 - `q` or `Ctrl+C` quits.
 
 Skill Shelf reads both views at startup. Restart it to see filesystem changes. It requires a terminal for both input and output; redirected input or output returns an error. `--help` and `--version` also work without a terminal.
 
 ## What it reads
 
-Project skills come from `.agents/skills` and `skills-lock.json` in the discovered project directory. Global skills come from `~/.agents/skills` and `~/.agents/.skill-lock.json` independently.
+Project includes recognized installation locations at the working directory and every ancestor, nearest first, including above Git roots. Discovery stops before home; launching at home gives an empty Project view. Outside home, discovery includes ancestors through the filesystem root. Siblings and descendants are not searched. Each populated directory has its own section; Global stays separate.
 
-Starting at the working directory, Skill Shelf searches upward for the nearest project skills directory or lock file. A Git root stops the search, even when it has no skills. The home directory is a boundary, not a project, so global skills are not mistaken for project skills. If no marker is found, the working directory is used unless it is the home directory. The `skills` installer itself uses the working directory for project installs rather than this upward search. In a monorepo, run Skill Shelf inside the intended project when nested installations exist.
+The checked-in [destination registry](https://github.com/simonteague6/skill-shelf/blob/main/src/registry.ts) follows `vercel-labs/skills` revision `1a1d387ed4286e59aa43a2696cf02b3590061c91` (2026-11-04). It includes shared `.agents/skills`, agent-specific paths such as `.claude/skills` and `.hermes/skills`, nonhidden project paths such as `agent/skills`, and global paths such as `~/.config/opencode/skills`. Missing optional locations are silent. No generic hidden-directory search or custom-path configuration is used.
 
-Each directory or directory symlink directly inside the skills folder counts as an installed skill. Broken symlinks, files, and lock-only entries do not count. The lock provides source metadata, not the inventory. Two or more installed skills with the same recorded source appear together. A source with one installed skill appears under Other sources with its source name. Skills without usable source metadata appear under Your collection. A missing or invalid lock does not hide installed folders; the view reports the missing or unreadable lock when applicable.
+Only immediate skill directories and directory symlinks with readable `SKILL.md` count; frontmatter is not validated. Broken links, unrelated folders, files and lock-only entries do not count. Aliases to the same resolved folder and proven identical complete copies collapse within one directory level or within Global. Supporting files, binary assets and relative file sets participate in equality. Different content stays separate even under the same name; nothing collapses across project levels or scopes. Details retain observed paths, with **Agents** for `.agents` destinations and **linked folder** or **identical copy** where applicable.
 
-Only the paths above are scanned. Agent-specific skill directories, alternate global locations, nested skill folders, and skill descriptions are not read. Directory names are shown without validating `SKILL.md`. A project view shows `No project skills` when its skills directory is absent or empty.
+Project metadata comes only from `skills-lock.json` (schema v1) at each included level. Global metadata comes from `~/.agents/.skill-lock.json` (schema v3), or `$XDG_STATE_HOME/skills/.skill-lock.json`. Locks supply recorded attribution, not inventory or proof of pristine content. Missing metadata leaves skills visible; conflicting alias records and ambiguous same-name variants go to Your collection. Repository groups and skills are alphabetical, followed by Your collection; singleton sources retain the Other sources section. Read/metadata/comparison issues produce concise nonfatal notices.
+
+Global destinations honor upstream path overrides: `XDG_CONFIG_HOME`, `CLAUDE_CONFIG_DIR`, `HERMES_HOME`, `VIBE_HOME`, `AUTOHAND_HOME`, `GROK_HOME` and `REASONIX_HOME`. XDG config must be absolute; the upstream global lock reader uses `XDG_STATE_HOME` verbatim. OpenClaw uses the first existing `.openclaw`, `.clawdbot` or `.moltbot` home directory. See [compatibility and safety limits](https://github.com/simonteague6/skill-shelf/blob/main/docs/compatibility.md) for the exact comparison budgets and platform details.
+
+This is an observational startup snapshot, not an agent activation or precedence model. A shared destination does not prove that an agent is installed or that every agent activates ancestor skills.
 
 ## Development
 
@@ -57,7 +63,7 @@ npm run build
 npm pack --dry-run
 ```
 
-`npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses a compact column list with pastel source headings and separate rows for individual sources.
+`npm run format` applies formatting. Tests build the TypeScript sources and run the Node.js test suite; Unix interactive CLI tests also require Python 3 for the PTY driver. The CLI declares support for Node 20 and later; CI checks Node 24 only, so other versions are not covered by CI. The interface uses selectable grids with pastel source headings, directory sections and a detail view.
 
 ## Release preparation
 
