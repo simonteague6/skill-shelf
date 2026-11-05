@@ -5,16 +5,55 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Generated release PR number (automation only)
+        type: string
+      head_sha:
+        description: Exact release PR head to test (automation only)
+        type: string
 
 permissions:
   contents: read
 
 jobs:
+  release-head:
+    if: github.event_name == 'workflow_dispatch' && (inputs.release_pr != '' || inputs.head_sha != '') && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: write
+    outputs:
+      sha: ${{ steps.validate.outputs.result }}
+    steps:
+      - name: Check out trusted main validation
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Validate intended release PR head
+        uses: actions/github-script@v9
+        id: validate
+        env:
+          RELEASE_PR: ${{ inputs.release_pr }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+        with:
+          result-encoding: string
+          script: |
+            const {validate} = require('./scripts/dispatch-release-ci.cjs');
+            return await validate({github, context, number: process.env.RELEASE_PR, expectedSha: process.env.HEAD_SHA});
+
   check:
+    needs: release-head
+    if: ${{ !cancelled() && (needs.release-head.result == 'success' || (needs.release-head.result == 'skipped' && inputs.release_pr == '' && inputs.head_sha == '')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-head.outputs.sha || github.sha }}
+          persist-credentials: false
       - name: Set up Node.js 24
         uses: actions/setup-node@v7
         with:
@@ -34,3 +73,23 @@ jobs:
         run: npm run build
       - name: Check package contents
         run: npm pack --dry-run
+
+  release-result:
+    needs: [release-head, check]
+    if: ${{ always() && needs.release-head.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    steps:
+      - name: Attach CI result to the tested release PR commit
+        uses: actions/github-script@v9
+        env:
+          HEAD_SHA: ${{ needs.release-head.outputs.sha }}
+          RESULT: ${{ needs.check.result }}
+        with:
+          script: |
+            await github.rest.checks.create({
+              ...context.repo, name: 'check', head_sha: process.env.HEAD_SHA,
+              status: 'completed', conclusion: process.env.RESULT === 'success' ? 'success' : 'failure',
+              details_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
