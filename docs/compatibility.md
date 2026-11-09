@@ -1,10 +1,28 @@
 # Compatibility and safety
 
+## Project and Global scopes
+
+Project scans recognized installation locations at the working directory and every ancestor, nearest first, including above Git roots. Discovery stops before home; launching at home gives an empty Project view. Outside home, discovery includes ancestors through the filesystem root. Siblings and descendants are not searched. Each populated directory has its own section; Global stays separate.
+
+Only immediate skill directories and directory symlinks with readable `SKILL.md` count; frontmatter is not validated. Broken links, unrelated folders, files and lock-only entries do not count. Aliases to the same resolved folder and proven identical complete copies collapse within one directory level or within Global. Different content stays separate even under the same name. Nothing collapses across project levels or scopes.
+
+Details retain observed paths, with **Agents** for `.agents` destinations and **linked folder** or **identical copy** where applicable. Both scopes are startup snapshots, not an agent activation or precedence model. A shared destination does not prove that an agent is installed or that every agent activates ancestor skills.
+
+## Source attribution
+
+Project metadata comes only from `skills-lock.json`, schema v1, at each included level. Global metadata comes from `~/.agents/.skill-lock.json`, schema v3, or `$XDG_STATE_HOME/skills/.skill-lock.json`. Locks supply recorded attribution, not inventory or proof of pristine content.
+
+Missing metadata leaves skills visible. Conflicting alias records and ambiguous same-name variants go to Your collection. Repository groups and skills are alphabetical, followed by Your collection. Singleton sources appear in Other sources. Read, metadata and comparison issues produce concise nonfatal notices.
+
 ## Destination snapshot
 
 Skill Shelf scans the installation destinations in the checked-in `src/registry.ts`, attributed to [vercel-labs/skills `src/agents.ts`](https://github.com/vercel-labs/skills/blob/1a1d387ed4286e59aa43a2696cf02b3590061c91/src/agents.ts), revision `1a1d387ed4286e59aa43a2696cf02b3590061c91`, checked 2026-11-04. All 79 agent records are represented, including project-only Eve and PromptScript. Shared physical destinations are scanned once and labeled Agents for `.agents/skills`; they do not imply agent installation or activation. Agent-detection predicates and source-repository discovery rules are not installation destinations.
 
 The registry data is derived from Vercel's MIT-licensed project, copyright 2026 Vercel, Inc. Its full license notice is retained in `src/registry.ts` and the distributed `dist/registry.js`.
+
+Destinations include shared `.agents/skills`, agent-specific paths such as `.claude/skills` and `.hermes/skills`, nonhidden project paths such as `agent/skills`, and global paths such as `~/.config/opencode/skills`. There is no generic hidden-directory search or custom-path configuration.
+
+Global destinations honor upstream path overrides for `XDG_CONFIG_HOME`, `CLAUDE_CONFIG_DIR`, `HERMES_HOME`, `VIBE_HOME`, `AUTOHAND_HOME`, `GROK_HOME` and `REASONIX_HOME`. OpenClaw uses the first existing `.openclaw`, `.clawdbot` or `.moltbot` home directory.
 
 Global config destinations use absolute `XDG_CONFIG_HOME` or `~/.config` where upstream uses XDG config. The global lock path uses `XDG_STATE_HOME` verbatim, including relative values, matching upstream `src/skill-lock.ts`. Crush and Kimchi use the literal home-relative `.config` paths in the pinned registry. Whitespace-only agent-home overrides fall back to upstream defaults. `CODEX_HOME`, `SARVAM_HOME`, `APPDATA` for Zed and `FLATPAK_XDG_CONFIG_HOME` affect upstream detection, not their skill destinations. On Windows, Reasonix defaults to `$APPDATA/reasonix/skills` (or `~/AppData/Roaming/reasonix/skills`); `REASONIX_HOME` overrides that path. OpenClaw selects its first existing recognized home directory. No registry lookup or other network request occurs at startup.
 

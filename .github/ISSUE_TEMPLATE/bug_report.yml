@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a discovery, display, or CLI problem.
+body:
+  - type: markdown
+    attributes:
+      value: Remove secrets, private paths, and personal information from logs and screenshots before posting.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the launch command, Project or Global scope, and a minimal skill folder layout if relevant. Replace private paths with examples.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Skill Shelf version
+      description: Run skill-shelf --version, or give the commit if running from source.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and version
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: Run node --version.
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal application and version
+      description: Include the shell or terminal multiplexer if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, screenshots, or recording
+      description: For display problems, include the terminal size and a screenshot or recording if possible. Remove sensitive information.
